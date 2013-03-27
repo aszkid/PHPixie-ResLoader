@@ -20,6 +20,7 @@ class ResLoader
 	private	$_js;
 	private	$_jq;
 	private $_gfonts;
+	private $_plugins;
 
 	function __construct()
 	{
@@ -27,8 +28,36 @@ class ResLoader
 		$this->_js = array();
 		$this->_jq = NULL;
 		$this->_gfonts = array();
+		$this->_plugins = array();
+
+		$file = file_get_contents(Misc::find_file("../web/js/plugins", "config", "json"));
+		$json = json_decode($file);
+		
+		foreach ($json->plugins as $key => $value)
+		{
+			$this->_plugins[$value->name] = $value;
+		}
 	}
 
+	public function addJSPlugin($name)
+	{
+		if(isset($this->_plugins[$name]))
+		{
+			$plugin = &$this->_plugins[$name];
+
+			array_push($this->_js, array(
+				"route" => "/web/js/plugins/$plugin->name/$plugin->name.js",
+				"async"	=> "async"
+			));
+
+			if($plugin->css)
+			{
+				array_push($this->_css, array(
+					"route" => "/web/js/plugins/$plugin->name/$plugin->name.css"
+				));
+			}
+		}
+	}
 	public function addGFont($name, $options = "r")
 	{
 		array_push($this->_css, array(
